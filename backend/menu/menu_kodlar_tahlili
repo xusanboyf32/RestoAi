@@ -1,0 +1,45 @@
+models.py
+Bazada qanday jadvallar bo'lishini belgilaydi.
+Alembic shu faylni o'qib migration yaratadi.
+    ↓
+crud.py  ←  schemas.py
+crud.py     — bazaga yozish, o'qish, yangilash, o'chirish.
+schemas.py  — kelayotgan ma'lumotni tekshiradi,
+              ketayotgan ma'lumotni shakllantiradi.
+              crud.py ga kirish va chiqish formati shu yerda belgilanadi.
+    ↓
+router.py
+So'rov qabul qiladi, crud ga uzatadi, javob qaytaradi.
+Kim qaysi endpointga kira olishini nazorat qiladi.
+    ↓
+main.py
+router.py ni ilovaga ulaydi — endpoint ishlashni boshlaydi.
+
+
+/////////////////////////////////////////////////////////////////////////
+REST BN SOLISHTIRISH
+
+
+
+models.py
+Django: models.py
+Bazada qanday jadvallar bo'lishini belgilaydi.
+Alembic shu faylni o'qib migration yaratadi.
+    ↓
+crud.py  ←  schemas.py
+Django crud.py: views.py dagi queryset qismi
+               (objects.create, objects.filter, objects.get...)
+               Bazaga yozish, o'qish, yangilash, o'chirish.
+
+Django schemas.py: serializers.py
+                   Kelayotgan ma'lumotni tekshiradi,
+                   ketayotgan ma'lumotni shakllantiradi.
+    ↓
+router.py
+Django: views.py dagi endpoint qismi + urls.py birgalikda
+        So'rov qabul qiladi, crud ga uzatadi, javob qaytaradi.
+        Kim qaysi endpointga kira olishini nazorat qiladi.
+    ↓
+main.py
+Django: urls.py dagi include()
+        Router ni ilovaga ulaydi — endpoint ishlashni boshlaydi.

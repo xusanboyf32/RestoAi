@@ -1,0 +1,206 @@
+
++++++++++++++++++++++++++++++++++++++++++++
+Ishlatilgan fayllar va vazifasi:          +
++++++++++++++++++++++++++++++++++++++++++++
+
+core/base.py
+Vazifa: Barcha modellarga umumiy ustunlar beradi
+
+Nima qiladi:
+- Base      → barcha modellar shu dan meros oladi
+- TimestampMixin → har modelga avtomatik qo'shadi:
+    id         → har jadvalda asosiy kalit
+    created_at → qachon yaratildi (server vaqti)
+    updated_at → qachon o'zgartirildi (avtomatik)
+    is_deleted → o'chirilganmi (soft delete)
+
+Nima uchun alohida fayl:
+- Takrorlanishni kamaytiradi
+- 10 ta model = 0 ta takror
+- Django da abstract = True bilan bir xil
+
+
+----------------------------------------------------------
+
+auth/models.py
+Vazifa: PostgreSQL da jadvallar tuzilmasini belgilaydi
+
+Nima qiladi:
+- User         → xodimlar jadvali (waiter, chef)
+- Table        → stollar jadvali
+- TableSession → mijoz QR skanerlagan sessiya
+
+Indexlar:
+- ix_users_username          → login tezlashadi
+- ix_users_role_active       → "barcha waiterlar" so'rovi tezlashadi
+- ix_tables_number           → stol raqami tez topiladi
+- ix_tables_qr_code          → QR skanerlanganda tez topiladi
+- ix_table_sessions_token    → sessiya tez topiladi
+- ix_table_sessions_table_active → "bu stolda sessiya bormi?" tezlashadi
+
+Django da o'rnini bosadi:
+- models.Model → Base + TimestampMixin
+
+
+--------------------------------------------------------------------------
+
+database.py
+Vazifa: PostgreSQL ga async ulanish
+
+Nima qiladi:
+- engine           → PostgreSQL ga "yo'l" ochadi
+- pool_size=10     → 10 ta doimiy ulanish
+- max_overflow=20  → pik vaqtda +20 ta ulanish
+- pool_recycle     → 30 daqiqada ulanish yangilanadi
+- AsyncSessionLocal → har so'rovda session yaratadi
+- get_db()         → har endpointga session beradi,
+                     xato bo'lsa rollback qiladi
+
+Django da o'rnini bosadi:
+- settings.py DATABASES → DATABASE_URL
+- Django session boshqaruvi → get_db()
+
+
+--------------------------------------------------------------
+
+auth/schemas.py
+Vazifa: Brauzerdan kelgan ma'lumotni tekshiradi
+
+Nima qiladi:
+- UserCreate   → yangi xodim qo'shganda:
+                 full_name (min 3), username (min 3),
+                 password (min 6), role (waiter/chef)
+
+- UserLogin    → login qilganda:
+                 username + password
+
+- Token        → login muvaffaqiyatli bo'lganda:
+                 access_token + token_type qaytaradi
+
+- TokenData    → JWT decode bo'lganda:
+                 token ichidan username + role olinadi
+
+- UserResponse → user ma'lumoti ko'rsatganda:
+                 id, full_name, username, role, is_active
+                 ⚠️ password HECH QACHON qaytarilmaydi
+
+Django da o'rnini bosadi:
+- serializers.py → schemas.py (Pydantic)
+
+
+------------------------------------------------------------------------
+
+auth/crud.py
+Vazifa: Database bilan barcha amallar
+
+Nima qiladi:
+- hash_password()         → "1234" → "$2b$12$..."
+                            parol ochiq saqlanmaydi
+- verify_password()       → login da parol tekshiradi
+- get_user_by_username()  → username bo'yicha topadi
+                            is_deleted=True bo'lsa topilmaydi
+                            is_active=False bo'lsa topilmaydi
+- create_user()           → yangi xodim yaratadi,
+                            parolni hashlab saqlaydi
+- authenticate_user()     → username + parol tekshiradi,
+                            to'g'ri bo'lsa user qaytaradi
+
+Django da o'rnini bosadi:
+- User.objects.get()    → get_user_by_username()
+- User.objects.create() → create_user()
+- authenticate()        → authenticate_user()
+- make_password()       → hash_password()
+- check_password()      → verify_password()
+
+
+----------------------------------------------------------------
+
+auth/router.py
+Vazifa: Endpointlar — brauzerdan so'rov qabul qiladi
+
+Nima qiladi:
+- POST /auth/register → yangi waiter/chef qo'shadi
+                        username band bo'lsa xato qaytaradi
+
+- POST /auth/login    → username + parol keladi
+                        to'g'ri bo'lsa JWT token qaytaradi
+                        noto'g'ri bo'lsa 401 xato
+
+- GET  /auth/me       → token keladi
+                        token decode bo'ladi
+                        o'z ma'lumotlarini qaytaradi
+
+JWT:
+- SECRET_KEY   → token imzolash uchun
+- ALGORITHM    → HS256
+- Muddati      → 60 daqiqa
+
+Django da o'rnini bosadi:
+- urls.py + views.py → router.py (ikkalasi bitta faylda)
+- @login_required    → Depends(get_current_user)
+
+main.py
+Vazifa: Bosh fayl — hamma narsani birlashtiradi
+
+Nima qiladi:
+- lifespan         → ilova ishga tushganda jadvallar
+                     yaratiladi (Base.metadata.create_all)
+                     ilova to'xtaganda DB ulanish yopiladi
+- FastAPI()        → ilova yaratiladi
+- include_router() → auth router biriktiriladi
+- GET /            → "RestoAI ishlayapti ✅"
+
+Django da o'rnini bosadi:
+- settings.py    → main.py (sozlamalar)
+- urls.py asosiy → app.include_router()
+- manage.py      → uvicorn main:app
+
+So'rovlar yo'li — to'liq:
+REGISTER:
+Brauzer → POST /auth/register
+              ↓
+          router.py — so'rov qabul qiladi
+              ↓
+          schemas.py (UserCreate) — tekshiradi
+              ↓
+          crud.get_user_by_username — band emasmi?
+              ↓
+          crud.create_user — hashlab saqlaydi
+              ↓
+          schemas.py (UserResponse) — qaytaradi
+              ↓
+          Brauzer ← { id, full_name, username, role }
+
+LOGIN:
+Brauzer → POST /auth/login
+              ↓
+          router.py — so'rov qabul qiladi
+              ↓
+          schemas.py (UserLogin) — tekshiradi
+              ↓
+          crud.authenticate_user — username + parol
+              ↓
+          create_access_token — JWT yaratadi
+              ↓
+          Brauzer ← { access_token, token_type }
+
+ME:
+Brauzer → GET /auth/me + token
+              ↓
+          router.py — token qabul qiladi
+              ↓
+          get_current_user — token decode
+              ↓
+          crud.get_user_by_username — topadi
+              ↓
+          Brauzer ← { id, full_name, username, role }
+
+Fayllar bog'liqligi:
+main.py
+   └── auth/router.py
+         ├── auth/schemas.py
+         ├── auth/crud.py
+         │     └── auth/models.py
+         │           └── core/base.py
+         └── database.py
+               └── core/base.py
