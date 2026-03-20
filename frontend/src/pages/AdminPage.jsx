@@ -1082,8 +1082,7 @@ export default function AdminPage() {
                     <div className="flex-1 min-w-0">
                       <p className="text-white font-bold text-sm truncate">{s.full_name}</p>
                       <p className="text-textMuted text-xs">@{s.username}</p>
-                      <span className={`text-xs font-bold px-2 py-0.5 rounded-full border mt-1 inline-block ${s.role === 'chef' ? 'bg-orange/10 text-orange border-orange/30' : 'bg-teal/10 text-teal border-teal/30'}`}>{s.role === 'chef' ? 'Oshpaz' : 'Ofitsiant'}</span>
-                    </div>
+                <span className={`text-xs font-bold px-2 py-0.5 rounded-full border mt-1 inline-block ${s.role === 'chef' ? 'bg-orange/10 text-orange border-orange/30' : s.role === 'admin' ? 'bg-primary/10 text-primary border-primary/30' : 'bg-teal/10 text-teal border-teal/30'}`}>{s.role === 'chef' ? 'Oshpaz' : s.role === 'admin' ? 'Admin' : 'Ofitsiant'}</span>                    </div>
                   </div>
                   {s.role === 'waiter' && (
                     <div className="mb-3">

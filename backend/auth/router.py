@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from core.limiter import limiter
 
 from database import get_db
 from redis_client import add_to_blacklist, is_blacklisted
@@ -35,18 +36,19 @@ async def get_current_user(
     return user
 
 
-@router.post("/register", response_model=UserResponse)
-async def register(data: UserCreate, db: AsyncSession = Depends(get_db)):
-    existing = await crud.get_user_by_username(db, data.username)
-    if existing:
-        raise HTTPException(status_code=400, detail="Bu username band")
-    user = await crud.create_user(db, data)
-    logger.info(f"✅ Yangi user: {user.username} | role: {user.role}")
-    return user
+# @router.post("/register", response_model=UserResponse)
+# async def register(data: UserCreate, db: AsyncSession = Depends(get_db)):
+#     existing = await crud.get_user_by_username(db, data.username)
+#     if existing:
+#         raise HTTPException(status_code=400, detail="Bu username band")
+#     user = await crud.create_user(db, data)
+#     logger.info(f"✅ Yangi user: {user.username} | role: {user.role}")
+#     return user
 
 
 @router.post("/login", response_model=Token)
-async def login(data: UserLogin, db: AsyncSession = Depends(get_db)):
+@limiter.limit("5/minute")
+async def login(request: Request, data: UserLogin, db: AsyncSession = Depends(get_db)):
     user = await crud.authenticate_user(db, data.username, data.password)
     if not user:
         raise HTTPException(status_code=401, detail="Username yoki parol noto'g'ri")
@@ -92,6 +94,8 @@ async def admin_create_user(
 ):
     if current_user.role != "admin":
         raise HTTPException(status_code=403, detail="Faqat admin uchun")
+    if data.role == "admin":  # ← shu qatorni qo'shing
+        raise HTTPException(status_code=403, detail="Admin yarata olmaysiz")
     existing = await crud.get_user_by_username(db, data.username)
     if existing:
         raise HTTPException(status_code=400, detail="Bu username band")
@@ -107,7 +111,12 @@ async def admin_get_users(
 ):
     if current_user.role != "admin":
         raise HTTPException(status_code=403, detail="Faqat admin uchun")
-    result = await db.execute(select(User).where(User.is_active == True))
+    result = await db.execute(
+        select(User).where(
+            User.is_active == True,
+            User.role != "admin"  # ← shu qator qo'shildi
+        )
+    )
     return result.scalars().all()
 
 
@@ -120,6 +129,8 @@ async def admin_update_user(
 ):
     if current_user.role != "admin":
         raise HTTPException(status_code=403, detail="Faqat admin uchun")
+    if user_id == current_user.id:  # ← shu qator qo'shildi
+        raise HTTPException(status_code=400, detail="O'zingizni edit qila olmaysiz")
     result = await db.execute(select(User).where(User.id == user_id))
     user   = result.scalar_one_or_none()
     if not user:

@@ -22,7 +22,7 @@ def _get_embeddings():
         print("Embedding modeli yuklanmoqda...")
         _embeddings = HuggingFaceEmbeddings(
             model_name="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
-            cache_folder="D:/hf_cache"
+            cache_folder="/app/.cache/huggingface"
         )
         print("Embedding modeli yuklandi!")
     return _embeddings

@@ -16,7 +16,7 @@ class User(Base, TimestampMixin):
     full_name        = Column(String(100), nullable=False)
     username         = Column(String(50),  nullable=False)
     hashed_password  = Column(String(255), nullable=False)
-    role             = Column(Enum(RoleEnum), nullable=False)
+    role = Column(String(50), nullable=False)
     is_active        = Column(Boolean, default=True, nullable=False)
     assigned_tables  = Column(JSON, default=list, nullable=False, server_default="[]")
 

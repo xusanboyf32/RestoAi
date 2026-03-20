@@ -16,6 +16,32 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+    # ── 1. tables ──
+    op.create_table(
+        'tables',
+        sa.Column('id', sa.Integer(), primary_key=True),
+        sa.Column('number', sa.Integer(), nullable=False),
+        sa.Column('qr_code', sa.String(), nullable=False),
+        sa.Column('is_active', sa.Boolean(), nullable=False, server_default='true'),
+        sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+        sa.Column('updated_at', sa.DateTime(), nullable=True),
+        sa.UniqueConstraint('number'),
+        sa.UniqueConstraint('qr_code'),
+    )
+
+    # ── 2. table_sessions ──
+    op.create_table(
+        'table_sessions',
+        sa.Column('id', sa.Integer(), primary_key=True),
+        sa.Column('table_id', sa.Integer(), sa.ForeignKey('tables.id', ondelete='CASCADE'), nullable=False),
+        sa.Column('session_token', sa.String(), nullable=False),
+        sa.Column('is_active', sa.Boolean(), nullable=False, server_default='true'),
+        sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+        sa.Column('updated_at', sa.DateTime(), nullable=True),
+        sa.UniqueConstraint('session_token'),
+    )
+
+    # ── 3. orders ──
     op.create_table(
         'orders',
         sa.Column('id', sa.Integer(), primary_key=True),
@@ -34,11 +60,12 @@ def upgrade() -> None:
         sa.Column('is_deleted', sa.Boolean(), nullable=False, server_default='false'),
     )
 
+    # ── 4. order_items (menu_items FK olib tashlandi) ──
     op.create_table(
         'order_items',
         sa.Column('id', sa.Integer(), primary_key=True),
         sa.Column('order_id', sa.Integer(), sa.ForeignKey('orders.id', ondelete='CASCADE'), nullable=False),
-        sa.Column('menu_item_id', sa.Integer(), sa.ForeignKey('menu_items.id', ondelete='SET NULL'), nullable=True),
+        sa.Column('menu_item_id', sa.Integer(), nullable=True),
         sa.Column('name', sa.String(200), nullable=False),
         sa.Column('price', sa.Float(), nullable=False),
         sa.Column('quantity', sa.Integer(), nullable=False, server_default='1'),
@@ -48,6 +75,7 @@ def upgrade() -> None:
         sa.Column('is_deleted', sa.Boolean(), nullable=False, server_default='false'),
     )
 
+    # ── 5. issues ──
     op.create_table(
         'issues',
         sa.Column('id', sa.Integer(), primary_key=True),
@@ -61,11 +89,12 @@ def upgrade() -> None:
         sa.Column('is_deleted', sa.Boolean(), nullable=False, server_default='false'),
     )
 
+    # ── 6. ratings ──
     op.create_table(
         'ratings',
         sa.Column('id', sa.Integer(), primary_key=True),
         sa.Column('order_id', sa.Integer(), sa.ForeignKey('orders.id', ondelete='CASCADE'), nullable=False),
-        sa.Column('waiter_id', sa.Integer(), sa.ForeignKey('users.id', ondelete='SET NULL'), nullable=True),
+        sa.Column('waiter_id', sa.Integer(), nullable=True),
         sa.Column('rating', sa.Integer(), nullable=False),
         sa.Column('comment', sa.Text(), nullable=True),
         sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
@@ -79,3 +108,5 @@ def downgrade() -> None:
     op.drop_table('issues')
     op.drop_table('order_items')
     op.drop_table('orders')
+    op.drop_table('table_sessions')
+    op.drop_table('tables')

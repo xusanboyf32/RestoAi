@@ -12,6 +12,13 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from datetime import datetime, timedelta
 from sqlalchemy import delete
 import time
+# Eski
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+limiter = Limiter(key_func=get_remote_address)
+
+# Yangi
+from core.limiter import limiter
 
 from database import engine, AsyncSessionLocal
 from auth.router import router as auth_router
@@ -86,15 +93,14 @@ app.add_middleware(
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-app.include_router(auth_router)
-app.include_router(menu_router)
-app.include_router(order_router)
-app.include_router(tables_router)
-app.include_router(ws_router)
-app.include_router(ai_router)
-app.include_router(search_router)
-app.include_router(upload_router)
-
+app.include_router(auth_router, prefix="/api")
+app.include_router(menu_router, prefix="/api")
+app.include_router(order_router, prefix="/api")
+app.include_router(tables_router, prefix="/api")
+app.include_router(ws_router, prefix="/api")
+app.include_router(ai_router, prefix="/api")
+app.include_router(search_router, prefix="/api")
+app.include_router(upload_router, prefix="/api")
 
 @app.middleware("http")
 async def log_requests(request, call_next):

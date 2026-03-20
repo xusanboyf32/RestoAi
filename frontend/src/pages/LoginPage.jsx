@@ -21,8 +21,11 @@ export default function LoginPage() {
       else if (role === 'waiter') navigate('/waiter')
       else if (role === 'chef')   navigate('/chef')
     } catch (err) {
-      setError(err.response?.data?.detail || 'Login xato')
-    } finally {
+ if (err.response?.status === 429) {
+    setError("Juda ko'p urinish! 1 daqiqa kuting ⏳")
+  } else {
+    setError(err.response?.data?.detail || "Username yoki parol noto'g'ri")
+  }    } finally {
       setLoading(false)
     }
   }
