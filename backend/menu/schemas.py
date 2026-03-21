@@ -180,17 +180,19 @@ class MenuItemResponse(BaseModel):
 
     @model_validator(mode="after")
     def calc_discounted_price(self):
-        now = datetime.utcnow()
+        from datetime import timezone, timedelta
+        TZ_UZB = timezone(timedelta(hours=5))
+        now = datetime.now(TZ_UZB).replace(tzinfo=None)
         if (
-            self.is_sale
-            and self.discount_percent
-            and self.sale_start
-            and self.sale_end
-            and self.sale_start <= now <= self.sale_end
+                self.is_sale
+                and self.discount_percent
+                and self.sale_start
+                and self.sale_end
+                and self.sale_start <= now <= self.sale_end
         ):
             self.discounted_price = round(self.price - self.price * self.discount_percent / 100, 0)
         else:
-            self.is_sale          = False
+            self.is_sale = False
             self.discounted_price = None
         return self
 
