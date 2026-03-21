@@ -41,7 +41,7 @@ menu_item_tags = SATable(
     "menu_item_tags",
     Base.metadata,
     Column("menu_item_id", Integer, ForeignKey("menu_items.id", ondelete="CASCADE"), primary_key=True),
-    Column("tag", SAEnum(FoodTag), primary_key=True),
+    Column("tag", String(50), primary_key=True),
 )
 
 
@@ -82,7 +82,7 @@ class MenuItem(Base, TimestampMixin):
     is_vegetarian = Column(Boolean, default=False, nullable=False)  # Vegetarian
     has_sugar     = Column(Boolean, default=False, nullable=False)  # Shakar bor
 
-    availability = Column(SAEnum(FoodAvailability), default=FoodAvailability.AVAILABLE, nullable=False)
+    availability = Column(String(50), default="AVAILABLE", nullable=False)
 
     # Kasalliklar uchun
     is_diabetes_safe = Column(Boolean, nullable=True)
