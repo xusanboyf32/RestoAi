@@ -67,7 +67,9 @@ export default function WaiterPage() {
       loadMyRatings()
 
       // WebSocket — to'g'ri port 8001
-      const wsUrl = `ws://localhost:8001/ws/waiter/${me.id}`
+      const wsProto = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+      const wsUrl = `${wsProto}//${window.location.host}/ws/waiter/${me.id}`
+
       ws = new WebSocket(wsUrl)
       wsRef.current = ws
 

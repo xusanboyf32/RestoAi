@@ -39,7 +39,9 @@ export default function ChefPage() {
   useEffect(() => {
     fetchMe()
     loadOrders()
-    wsRef.current = new WebSocket('ws://localhost:8000/ws/chef')
+    const wsProto = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+    wsRef.current = new WebSocket(`${wsProto}//${window.location.host}/ws/chef`)
+
     wsRef.current.onmessage = (e) => {
       const msg = JSON.parse(e.data)
       if (msg.type === 'new_order') loadOrders()
