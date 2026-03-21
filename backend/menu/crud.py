@@ -219,7 +219,7 @@ async def set_availability(db: AsyncSession, item_id: int, availability: FoodAva
     item = await get_menu_item_by_id(db, item_id)
     if not item:
         return None
-    item.availability = FoodAvailabilityEnum(availability.value)
+    item.availability = availability.value
     await db.commit()
     await db.refresh(item)
     item.tags = await _get_tags(db, item_id)
