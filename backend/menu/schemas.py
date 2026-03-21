@@ -1,5 +1,5 @@
 # menu/schemas.py
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, model_validator, field_validator
 from typing import Optional, List
 from datetime import datetime
 from enum import Enum
@@ -145,7 +145,7 @@ class MenuItemResponse(BaseModel):
     image_url:    Optional[str]
     calories:     Optional[int]
     weight_grams: Optional[int]
-    availability: FoodAvailability
+    availability: str = "available"
     tags:         List[FoodTag] = []
     order_count:  int
     is_active:    bool
@@ -194,6 +194,12 @@ class MenuItemResponse(BaseModel):
             self.discounted_price = None
         return self
 
+    @field_validator('availability', mode='before')
+    @classmethod
+    def normalize_availability(cls, v):
+        if v:
+            return str(v).lower()
+        return "available"
 
 # ── Pagination ───────────────────────────────────────────
 
