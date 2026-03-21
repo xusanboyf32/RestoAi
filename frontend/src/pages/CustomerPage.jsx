@@ -716,11 +716,11 @@ export default function CustomerPage() {
               <div style={{flex:1, padding:'32px 24px', maxWidth:'1100px', margin:'0 auto'}}>
 
                 {/* TOP SECTION: rasm katta + info */}
-                <div style={{display:'flex', gap:'32px', flexWrap:'wrap', marginBottom:'48px'}}>
+                <div style={{display:'flex', gap:'32px', flexWrap:'wrap', marginBottom:'48px', flexDirection: window.innerWidth < 768 ? 'column' : 'row'}}>
 
                   {/* Katta rasm */}
                   <div style={{
-                    width:'480px', flexShrink:0,
+                    width:'100%', maxWidth:'480px', flexShrink:0,
                     borderRadius:'24px', overflow:'hidden',
                     border:'1px solid rgba(124,92,255,0.22)',
                     boxShadow:'0 0 80px rgba(124,92,255,0.2), 0 0 120px rgba(0,212,255,0.08)',
@@ -881,7 +881,7 @@ export default function CustomerPage() {
                 )}
 
                 {/* ─── FIKRLAR ─── */}
-                <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'24px', flexWrap:'wrap'}}>
+                <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(100%, 380px), 1fr))', gap:'24px', flexWrap:'wrap'}}>
                   {/* Fikr qoldirish */}
                   <div style={{...GLASS, borderRadius:'20px', padding:'24px'}}>
                     <h3 style={{color:'#fff', fontWeight:800, fontFamily:"'Syne', sans-serif", margin:'0 0 18px', fontSize:'16px'}}>
@@ -1248,7 +1248,7 @@ export default function CustomerPage() {
             </div>
 
             {loading ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-5">
+            <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(min(100%, 300px), 1fr))', gap:'16px'}}>
                 {Array.from({length: LIMIT}).map((_, i) => (
                   <div key={i} className="rounded-2xl animate-pulse"
                     style={{height:'280px', background:'rgba(124,92,255,0.06)', border:'1px solid rgba(124,92,255,0.09)'}} />
@@ -1261,7 +1261,7 @@ export default function CustomerPage() {
                 <p className="text-sm mt-2" style={{color:'rgba(255,255,255,0.35)'}}>Boshqa kategoriyani tanlang</p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-5">
+              <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(min(100%, 300px), 1fr))', gap:'16px'}}>
                 {foods.map((food, i) => (
                   <FoodCard key={food.id} food={food} index={i}
                     avgRating={foodRatings[food.id]}
@@ -1326,7 +1326,14 @@ export default function CustomerPage() {
       {/* SAVAT */}
       {items.length > 0 && (
         <button onClick={() => setCartOpen(true)}
-          className="add-btn fixed bottom-6 left-6 z-50 flex items-center gap-3 px-5 h-14 rounded-2xl font-bold text-sm text-white"
+        className="add-btn fixed z-50 flex items-center gap-3 font-bold text-sm text-white"
+        style={{
+          bottom:'16px', left:'16px', right:'16px',
+          height:'60px', borderRadius:'18px',
+          animation:'cart-pulse 2.5s ease infinite',
+          fontFamily:"'Syne', sans-serif",
+          justifyContent:'center',
+        }}
           style={{animation:'cart-pulse 2.5s ease infinite', fontFamily:"'Syne', sans-serif"}}>
           <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
