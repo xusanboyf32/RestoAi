@@ -26,19 +26,19 @@ class PayWaiterRequest(BaseModel):
 
 
 def require_admin(current_user: User = Depends(get_current_user)) -> User:
-    if current_user.role != RoleEnum.admin:
+    if current_user.role != "admin":
         raise HTTPException(status_code=403, detail="Faqat admin uchun")
     return current_user
 
 
 def require_chef(current_user: User = Depends(get_current_user)) -> User:
-    if current_user.role not in (RoleEnum.chef, RoleEnum.admin):
+    if current_user.role not in ("chef", "admin"):
         raise HTTPException(status_code=403, detail="Faqat oshpaz uchun")
     return current_user
 
 
 def require_waiter(current_user: User = Depends(get_current_user)) -> User:
-    if current_user.role not in (RoleEnum.waiter, RoleEnum.admin):
+    if current_user.role not in ("waiter", "admin"):
         raise HTTPException(status_code=403, detail="Faqat ofitsiant uchun")
     return current_user
 
@@ -61,7 +61,7 @@ async def get_active_orders(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    if current_user.role not in (RoleEnum.chef, RoleEnum.admin, RoleEnum.waiter):
+    if current_user.role not in ("chef", "admin", "waiter"):
         raise HTTPException(status_code=403, detail="Ruxsat yo'q")
     return await crud.get_active_orders(db)
 
@@ -71,7 +71,7 @@ async def get_waiter_stats(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    if current_user.role not in (RoleEnum.waiter, RoleEnum.admin):
+    if current_user.role not in ("waiter", "admin"):
         raise HTTPException(status_code=403, detail="Ruxsat yo'q")
     return await crud.get_waiter_stats(db, current_user.id)
 
@@ -99,7 +99,7 @@ async def get_admin_stats(
     total_count   = len(delivered_orders)
 
     waiters_result = await db.execute(
-        select(User).where(User.role == RoleEnum.waiter, User.is_active == True)
+        select(User).where(User.role == "waiter", User.is_active == True)
     )
     waiters = waiters_result.scalars().all()
 
@@ -331,10 +331,10 @@ async def update_order_status(
     waiter_statuses = ("delivering", "delivered")
 
     if data.status.value in chef_statuses:
-        if current_user.role not in (RoleEnum.chef, RoleEnum.admin):
+        if current_user.role not in ("chef", "admin"):
             raise HTTPException(status_code=403, detail="Bu holatni faqat oshpaz o'zgartira oladi")
     elif data.status.value in waiter_statuses:
-        if current_user.role not in (RoleEnum.waiter, RoleEnum.admin):
+        if current_user.role not in ("waiter", "admin"):
             raise HTTPException(status_code=403, detail="Bu holatni faqat ofitsiant o'zgartira oladi")
 
     order = await crud.update_order_status(db, order_id, data)
@@ -405,7 +405,7 @@ async def get_admin_dashboard(
 
     # Barcha ofitsiantlar
     waiters_result = await db.execute(
-        select(User).where(User.role == RoleEnum.waiter, User.is_active == True)
+        select(User).where(User.role == "waiter", User.is_active == True)
     )
     all_waiters = waiters_result.scalars().all()
 
@@ -525,7 +525,7 @@ async def get_my_ratings(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    if current_user.role not in (RoleEnum.waiter, RoleEnum.admin):
+    if current_user.role not in ("waiter", "admin"):
         raise HTTPException(status_code=403, detail="Ruxsat yo'q")
 
     from order.models import Rating

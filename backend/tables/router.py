@@ -15,7 +15,7 @@ router = APIRouter(prefix="/tables", tags=["Tables"])
 
 def require_admin(current_user: User = Depends(get_current_user)) -> User:
     from auth.models import RoleEnum
-    if current_user.role != RoleEnum.admin:
+    if current_user.role != "admin":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Faqat admin uchun")
     return current_user
 

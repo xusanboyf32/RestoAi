@@ -26,13 +26,13 @@ class ReviewCreate(BaseModel):
 
 
 def require_admin(current_user: User = Depends(get_current_user)) -> User:
-    if current_user.role != RoleEnum.admin:
+    if current_user.role != "admin":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Faqat admin uchun")
     return current_user
 
 
 def require_chef_or_admin(current_user: User = Depends(get_current_user)) -> User:
-    if current_user.role not in (RoleEnum.admin, RoleEnum.chef):
+    if current_user.role not in ("admin", "chef"):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Faqat oshpaz yoki admin uchun")
     return current_user
 

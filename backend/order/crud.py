@@ -148,7 +148,7 @@ async def update_order_status(db: AsyncSession, order_id: int, data: OrderStatus
         from sqlalchemy import select as sel
         from auth.models import User, RoleEnum
         result  = await db.execute(
-            sel(User).where(User.role == RoleEnum.waiter).where(User.is_active == True)
+            sel(User).where(User.role == "waiter").where(User.is_active == True)
         )
         waiters = result.scalars().all()
         await manager.notify_waiter_by_table(
@@ -186,7 +186,7 @@ async def request_payment(db: AsyncSession, order_id: int, data: PaymentRequest)
     from auth.models import User, RoleEnum
     from sqlalchemy import select as sel
     result  = await db.execute(
-        sel(User).where(User.role == RoleEnum.waiter).where(User.is_active == True)
+        sel(User).where(User.role == "waiter").where(User.is_active == True)
     )
     waiters = result.scalars().all()
     await manager.notify_waiter_by_table(
@@ -262,7 +262,7 @@ async def create_rating(db: AsyncSession, data: RatingCreate) -> Rating:
     if not waiter_id and order:
         from auth.models import User, RoleEnum
         waiters_result = await db.execute(
-            select(User).where(User.role == RoleEnum.waiter, User.is_active == True)
+            select(User).where(User.role == "waiter", User.is_active == True)
         )
         waiters = waiters_result.scalars().all()
         for w in waiters:
