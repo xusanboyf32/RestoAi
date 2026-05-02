@@ -12,14 +12,8 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from datetime import datetime, timedelta
 from sqlalchemy import delete
 import time
-# Eski
-from slowapi import Limiter
-from slowapi.util import get_remote_address
-limiter = Limiter(key_func=get_remote_address)
 
-# Yangi
 from core.limiter import limiter
-
 from database import engine, AsyncSessionLocal
 from auth.router import router as auth_router
 from redis_client import redis_client
@@ -60,8 +54,11 @@ async def lifespan(app: FastAPI):
     logger.info("✅ PostgreSQL ulandi")
 
     async with AsyncSessionLocal() as db:
-        await index_menu(db)
-        logger.info("✅ AI menyu indexed")
+        try:
+            await index_menu(db)
+            logger.info("✅ AI menyu indexed")
+        except Exception as e:
+            logger.warning(f"⚠️ AI index skip (migration kerak): {e}")
 
     scheduler.add_job(cleanup_old_orders, "interval", hours=6)
     scheduler.start()
@@ -101,6 +98,7 @@ app.include_router(ws_router, prefix="/api")
 app.include_router(ai_router, prefix="/api")
 app.include_router(search_router, prefix="/api")
 app.include_router(upload_router, prefix="/api")
+
 
 @app.middleware("http")
 async def log_requests(request, call_next):
